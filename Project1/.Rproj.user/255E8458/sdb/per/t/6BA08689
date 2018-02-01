@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "Q1.4Levels <- c( -7, 1, 2 ) # In excel\nQ1.4Labels <- c( NA, 'Male', 'Female' )\n\nQ1.5Levels <- c( -7, 1, 2, 3, 4, 5, 15, 25, 35, 45, 125, 135, 245 )\nQ1.5Labels <- c( NA, 'American Indian or Alaska Native', 'Asian', 'Black or African American', \n                 'Native Hawaiian or Other Pacific Islander', 'White', 'Others', 'Others', 'Others', \n                 'Others', 'Others', 'Others', 'Others' )\n\nQ1.6Levels <- c( -7, 1, 2 )\nQ1.6Labels <- c( NA, 'Hispanic or Latino or Spanish Origin', 'Not Hispanic or Latino or Spanish Origin' )\n\nQ1.8Levels <- c( -7, 1, 2, 3, 4, 5 )\nQ1.8Labels <- c( NA, 'Completed 1 year or less', 'Completed 1-2 years', 'Completed 2-3 years', \n                 'Completed 3-4 years', 'Completed 4 years or more' )\n\nQ1.9Levels <- c( -7, 1, 2, 3, 4, 5 )\nQ1.9Labels <- c( NA, 'ADHD/ADD', 'LD', 'Psych D', 'Migraine Headaches', 'None' )\n\nQ1.10Levels <- c( -7, 1, 2, 3, 4, 5, 6 )\nQ1.10Labels <- c( NA, 'NCAA-sanctioned D1 athlete', 'Club sport at UW-Madison', \n                  'Intramural activities/sports at UW-Madison', \n                  'Uses UW-Madison physical activity/exercise facilities', \n                  'Does not participate in any activities', 'Others' )\n\nQ2.1Levels <- c( -7, 1, 2, 3 )\nQ2.1Labels <- c( NA, 'No Injury', 'Concussion', 'Musculoskeletal' )\n\nQ2.8Levels <- c( -7, 1, 2, 3, 4 )\nQ2.8Labels <- c( NA, 'Yes, NCAA-sanctioned D1', 'Yes, UW Club', 'Yes, UW RecSports/Intramurals', 'No' )\n\nQ3.1Levels <- c( -7, 1, 2 )\nQ3.1Labels <- c( NA, 'YES', 'NO' )\n\nQ3.3Levels <- c( -7, 1, 2, 3, 4, 5, 6, 7, 8 )\nQ3.3Labels <- c( NA, 'Coach', 'Safety Official', 'Teammate', 'Friend', 'Parent(s)', 'Instructor/Faculty', \n                 'Work', 'Other (specify)' )\n\nQ3.4Levels <- c( -7, 1:7 )\nQ3.4Labels <- c( NA, \"Didn’t think it was an injury\", \"Didn’t realize seriousness\", \n                 \"Didn’t want to miss sport\", \"Didn’t want to let my team down\", \n                 \"Didn’t want to miss school\", \"Didn’t know who to report it to\", \"Other (specify)\" )\n\n\nQ5.3_1Levels = c( -7, 1, 2, 3, 4, 5 )\nQ5.3_1Labels = c( NA, \"Strongly Disagree\", \"Disagree\", \"Neither Agree Nor Disagree\", \n                  \"Agree\", \"Strongly Agree\")\n# Q5.3_1 to Q5.3_22 are coded same\n\nQ7.1_1Levels = c( -7, 1, 2 )\nQ7.1_1Labels = c( NA, \"Yes\", \"No\") \n# Q7.1_1 to Q7.1_8 are coded same\n\nQ4.1Levels = c(-7, 1, 2, 3)\nQ4.1Labels = c (NA, \"Yes\", \"No\", \"I don't remember\")\n\nQ4.3Levels = c(-7, 1, 2, 3, 4, 5, 6, 7, 8)\nQ4.3Labels = c(NA, \"Primary Care Doctor\", \"Urgent Care Doctor\",\n               \"Emergency Department Doctor\", \"Athletic Trainer\", \"Coach\",\n               \"Parent\", \"Friend\", \"Other (specify)\")\n\nQ4.4Levels = c(-7, 1, 2, 3, 4)\nQ4.4Labels = c(NA, \"Yes\", \"No\", \"I don't remember\", \n               \"I didn’t need authorization/clearance to return to school\")\n\nQ4.6Levels = c(-7, 1, 2, 3)\nQ4.6Labels = c(NA, \"Yes\", \"No\", \"I don't remember\")\n\nQ4.8Levels = c(-7, 1, 2, 3)\nQ4.8Labels = c(NA, \"Yes\", \"No\", \"I don't remember\")\n\nQ4.9Levels = c(-7, 1, 2, 3)\nQ4.9Labels = c(NA, \"Yes\", \"No\", \"I don't remember\")\n\n\n\n\n\n",
+    "created" : 1489613984766.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3779682965",
+    "id" : "6BA08689",
+    "lastKnownWriteTime" : 1490497620,
+    "last_content_update" : 1490497620,
+    "path" : "~/Stat/Stat_Consulting/TraciSnedden/Project1/Codebook.R",
+    "project_path" : "Codebook.R",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

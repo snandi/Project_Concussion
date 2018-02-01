@@ -1,0 +1,355 @@
+\documentclass[12]{article}
+
+\input{HeaderfileTexDocs}
+
+\geometry{left=0.9in, right=0.9in, top=0.9in, bottom=0.9in}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+%\SweaveOpts{width='3in',height='3in'}
+\doublespacing
+
+\title{Project 2: How different are the academic effects of {\emph{concussion}} versus {\emph{musculoskeletal injury}}?}
+\author{Subhrangshu Nandi, UW Madison Department of Statistics \\
+Dr. Traci Snedden (PhD, RN, CPNP, CNE), UW Madison School of Nursing
+}
+%\date{March 13, 2014}
+\maketitle
+\subsubsection*{Purpose}
+To investigate how different the academic effects are, of {\bf{concussion}} and {\bf{musculoskeletal injury}}. 
+
+\subsubsection*{Data}
+The data is from a survey send out to a large groups of undergraduate students at a large midwestern 
+university. Overall response rate of the survey was $6.72\%$ (1,950 out of 29,000). The response rate is slightly lower than the average response rate for external surveys which is around 10-15\%. Out of 1,950 respondents, 76 of them reported to have had a concussion and 168 of them reported to have had a musculoskeletal injury during since starting college. 
+
+<<echo=FALSE>>=
+########################################################################
+## Get data for Project 2
+## Analyze Project 2 question
+########################################################################
+rm( list = ls( all.names = TRUE ) )
+rm( list = objects( all.names = TRUE ) )
+
+
+########################################################################
+## Load header files and source functions
+########################################################################
+library( ggplot2 )
+library( lm.beta )
+library( plyr )
+library( RFunctionsSN )
+library( xtable )
+
+########################################################################
+## Command line arguments for some static variables
+########################################################################
+ProjectPath <- '~/Stat/Stat_Consulting/TraciSnedden/Project2/'
+#ProjectPath <- '~/Documents/snandi/Stat/Stat_Consulting/TraciSnedden/Project2/'
+
+DataPath <- paste0( ProjectPath, 'Data/' )
+fileNameData <- 'InjuryDataFinal_TotalDays.csv'
+fileNameCodedData <- 'DataCoded.RData'
+
+source( '../Project1/Codebook.R' )
+source( paste0( ProjectPath, 'Project2_Static.R' ) )
+
+########################################################################
+## Functions
+########################################################################
+saveData <- function( Data, folderPath ){
+  fileNameTxt <- 'Project2Data.csv'
+  filePath <- paste0( folderPath, fileNameTxt )
+  write.table( x = Data, file = filePath, quote = F, sep = ',', row.names = F )
+}
+
+barPlotByQuestion <- function( TableLong, TitleText ){
+  barPlot <- qplot() + geom_bar( aes( x = Severity, y = Responses, fill = Injury, group = Injury ), 
+                                 data = TableLong, position = 'dodge', stat = 'identity' ) +
+    coord_flip() +
+    scale_fill_manual( breaks = c( "Concussion", "Musculoskeletal" ), values = c( "red", "gray40" ) ) +
+    xlab( label = '' ) +
+    ggtitle( label = TitleText ) +
+    theme( 
+      legend.position = 'top'
+    )
+  
+  return( barPlot )
+}
+
+getTableByQuestion <- function( DataProject2, Question ){
+  library( reshape2 )
+  varName <- Question
+  varNameCoded <- paste0( Question, '_coded' )
+  DataNoNa <- subset( DataProject2, !( is.na( as.vector( get( varNameCoded ) ) ) ) )
+  DataNoNa[, varNameCoded] <- as.factor( as.vector( DataNoNa[, varNameCoded] ) )
+  Table <- table( DataNoNa$InjuryType, DataNoNa[, varNameCoded] )
+  DataNoNa <- DataNoNa[, c( 'InjuryType', varNameCoded, varName ) ]
+  TableLong <- melt( Table )
+  colnames( TableLong ) <- c( 'Injury', 'Severity', 'Responses' )
+  TableLong$Severity <- factor( TableLong$Severity, Q5.3Levels ) ## Reorder factor levels manually
+  
+  return( list( Table = Table, TableLong = TableLong, DataNoNa = DataNoNa ) )
+}
+
+getCodedData <- function( folderPath, fileName ){
+  filePath <- paste0( folderPath, fileName )
+  load( filePath )
+  return( DataCoded )
+}
+
+getProject2Data <- function( folderPath, fileName ){
+  DataCoded <- getCodedData( folderPath, fileName )
+  DataProject2 <- DataCoded[, Project2_VarNames ]
+  colnames( DataProject2 )[colnames( DataProject2 ) == 'Q2.1_coded'] <- 'InjuryType'
+  colnames( DataProject2 )[colnames( DataProject2 ) == 'Q1.1_coded'] <- 'Age'
+  colnames( DataProject2 )[colnames( DataProject2 ) == 'Q1.4_coded'] <- 'Gender'
+  colnames( DataProject2 )[colnames( DataProject2 ) == 'Q1.5_coded'] <- 'Race'
+  colnames( DataProject2 )[colnames( DataProject2 ) == 'Q1.6_coded'] <- 'Ethnicity'
+  colnames( DataProject2 )[colnames( DataProject2 ) == 'Q1.8_coded'] <- 'AcadStatus'
+  colnames( DataProject2 )[colnames( DataProject2 ) == 'Q1.9_coded'] <- 'MentalIllness'
+  colnames( DataProject2 )[colnames( DataProject2 ) == 'Q2.7_TotalDays'] <- 'Days'
+
+  DataProject2 <- subset( DataProject2, InjuryType == 'Concussion' | InjuryType == 'Musculoskeletal' )
+  
+  DataProject2$InjuryType <- as.factor( as.vector( DataProject2$InjuryType ) )
+  # colnames( DataProject2 ) <- Project2_VarRenames
+  # DataProject2$InjuryType <- NULL
+  return( DataProject2 )
+}
+
+########################################################################
+## Data
+########################################################################
+DataProject2 <- getProject2Data( folderPath = DataPath, fileName = fileNameCodedData )
+saveData( Data = DataProject2, folderPath = DataPath )
+
+Responses5.3DF <- as.data.frame( cbind( Q5.3Text, pValueChi = 0, pValueT = 0, muDiff = 0 ), 
+                                stringsAsFactors = F )
+Responses5.3DF$pValueChi <- as.numeric( Responses5.3DF$pValueChi )
+Responses5.3DF$pValueT <- as.numeric( Responses5.3DF$pValueT )
+
+########################################################################
+## Demographics
+########################################################################
+TableRace <- table( DataProject2$Race, DataProject2$InjuryType )
+TableEth <- table( DataProject2$Ethnicity, DataProject2$InjuryType )
+
+RaceEth <- rbind( TableRace, TableEth ) 
+rownames(RaceEth)[6] <- 'NA'
+RaceEth <- RaceEth[ rownames( RaceEth ) != 'NA', ]
+
+TableGender <- table( DataProject2$InjuryType, DataProject2$Gender )
+TableInjury <- table( DataProject2$InjuryType )
+Male <- TableGender[,2]
+Female <- TableGender[,3]
+TableAge <- aggregate( Age ~ InjuryType, data = DataProject2, FUN = mean )
+SDAge <- aggregate( Age ~ InjuryType, data = DataProject2, FUN = sd )
+
+Table1 <- rbind( t( TableInjury ), t( Male ), t( Female ), 
+                 as.character( round( as.numeric( t( TableAge )[2,] ), 2) ),
+                 as.character( round( as.numeric( t( SDAge )[2,] ), 2) ) )
+
+rownames( Table1 ) <- c( 'N', 'N (males)', 'N (females)', 'Average Age', 'Std Dev Age' )
+
+Table1 <- rbind( Table1, RaceEth )
+TotalDays <- round( aggregate( Days ~ InjuryType, data = DataProject2, FUN = mean )[, 2], 0 )
+Table1 <- rbind( Table1, TotalDays )
+
+#TotalDays_SD <- round( aggregate( Days ~ InjuryType, data = DataProject2, FUN = sd )[, 2], 0 )
+
+TableHistory <- table( DataProject2$MentalIllness, DataProject2$InjuryType )
+rownames( TableHistory ) <- c( "NA", "ADHD/ADD", "Learning Disability", "Psychiatric Disorder", 
+                               "Migraine Headaches", "None" )
+Table1 <- rbind( Table1, TableHistory[2:6,] )
+
+for( i in 1:22 ){
+  Question <- paste0( 'Q5.3_', i )
+  ## 1 Get tables
+  Tables <- getTableByQuestion( DataProject2, Question )
+
+  ## 2 Chi-square test
+  TestChi <- chisq.test( Tables$Table )
+  pValueChi <- round( TestChi$p.value, 5 )
+  
+  # Responses5.3DF[Question, 'pValueChi'] <- min( pValueChi*22, 1.00 )
+  Responses5.3DF[Question, 'pValueChi'] <- pValueChi
+  
+  ## 3 T test
+  DataNoNa <- Tables$DataNoNa
+  dataConc <- subset( DataNoNa, InjuryType == 'Concussion' )[, Question ]
+  dataMusc <- subset( DataNoNa, InjuryType == 'Musculoskeletal' )[, Question ]
+  TestT <- t.test( x = dataConc, y = dataMusc, alternative = "greater", var.equal = T )
+  pValueT <- round( TestT$p.value, 5 )
+  muDiff <- round( diff( TestT$estimate ), 2 )
+  
+  # Responses5.3DF[Question, 'pValueT'] <- min( pValueT*22, 1.00 )
+  Responses5.3DF[Question, 'pValueT'] <- pValueT
+  Responses5.3DF[Question, 'muDiff'] <- muDiff
+}
+@
+
+<<echo=FALSE, results=tex>>=
+print( xtable( Table1, align = "lrr", caption = "Demographics of Injury Types", 
+               label = "tab:Tab0Table1" ), table.placement = "htbp" )
+@
+
+\subsection*{Methods}
+The students were asked several questions to assess how their injuries affected their academics. They were asked to respond how strongly they agreed or disagreed with the questions. The responses were recorded in 1 through 5 (Likert scale), where 1 being ``strongly disagree'' and 5 being ``strongly agree''. The questions were designed to assess the adverse consequences of their injuries. A higher numeric ( 4 or 5 ) response indicated more severe effect of the injury. For each question, two statistical tests were conducted to asses the difference in academic effects, of concussion and musculoskeletal injury. \\
+\noindent
+{\bf{$\chi^2$ test of independence}}: To test of the responses were independent of the injury type. The null hypothesis is that the proportions of five numeric responses (of agreement) were the same in the two types of injuries. If the p-value < 0.05 for an academic aspect, we rejected this null hypothesis and concluded that the injuries did have different impact on that particular academic aspect. 
+\begin{eqnarray}
+\nonumber
+\text{H}_0&:& \text{Responses were independent of injury type} \\
+\text{H}_a&:& \text{Responses were not independent of injury type} 
+\label{eq:chiSqTest}
+\end{eqnarray}
+\noindent
+{\emph{Assumptions}}:
+\begin{itemize}
+\item Simple random sample: The sample data is a random sampling from a fixed distribution or  population where every collection of members of the population of the given sample size has an equal probability of selection. Here this assumption is violated, so caution should be exercised when extrapolating the findings to all students.
+\item Sample size: A sample with a sufficiently large size is assumed. If a $\chi^2$ test is conducted on a sample with a smaller size, then the $\chi^2$ test will yield an inaccurate inference by increasing Type II error.
+\item Expected cell count: Adequate expected cell counts. Some require 5 or more, and others require 10 or more. A common rule is 5 or more in all cells of a 2-by-2 table, and 5 or more in 80\% of cells in larger tables, but no cells with zero expected count. When this assumption is not met, Yates's correction is applied.
+\item Independence: The observations are always assumed to be independent of each other. This means $\chi^2$ cannot be used to test correlated data (like matched pairs or panel data).
+\end{itemize}
+\noindent
+{\bf{One-sided $T$ test of mean scores}}: To test if the mean responses of students with ``concussion'' were higher than those of ``musculoskeletal'' injuries. If the p-value < 0.05 for an academic aspect, we rejected this null hypothesis and concluded that the effect of concussion on that academic aspect was higher than musculoskeletal injury.
+\begin{eqnarray}
+\nonumber
+\text{H}_0&:& \mu_{\text{concussion}} = \mu_{\text{musculoskeletal}} \\
+\text{H}_a&:& \mu_{\text{concussion}} \ne \mu_{\text{musculoskeletal}}
+\label{eq:tTest}
+\end{eqnarray}
+{\emph{Assumptions}}:
+\begin{itemize}
+\item Normality: Each of the two populations being compared should follow a normal distribution. 
+\item Independence: The data used to carry out the test should be sampled independently from the two populations being compared. 
+\end{itemize}
+
+\noindent
+{\bf{Regression Model for Academic Effects}}: The responses to the questions on academic effects were all added up to form one ``Academic Effect'' variable, (i.e., a composite Likert scale). Higher values of this variable indicated more severe academic impact. To estimate the difference in academic effects, of the two types of injuries, concussion and musculoskeletal, a regression model was fit, as in eq \ref{eq:Reg}. The response variable ($y$) was the composite academic effect. The covariates ($x_1, \dots, x_p$) were injury type, along with demographic factors such as age, gender, race, ethnicity, academic status (years in college), history of mental illness, such as ADHD, learning disability, etc, and interactions of the factors.
+
+\begin{equation} 
+y = \beta_0 + \beta_1x_1 + \dots + \beta_p x_p + \epsilon 
+\label{eq:Reg}
+\end{equation}
+
+\subsection*{Results}
+Table \ref{tab:Tab1Summary} is a summary of the two tests conducted on each question regarding academic effect
+
+<<echo=FALSE, results=tex>>=
+colnames( Responses5.3DF ) <- c( 'Question', 'Chi-sq p', 't-test p', 'mean diff')
+print( xtable( Responses5.3DF, align = "llrrr", caption = "Statistical tests of responses", 
+               label = "tab:Tab1Summary", digits = c( 0, 0, 4, 3, 2 ) ), table.placement = "htbp" )
+@
+
+The results of the $\chi^2$ test shows that all questions, except Q5.3\_7 and Q5.3\_22 have statistically significant difference in responses, when compared between students with concussion and musculoskeletal injury. The t-test p-values confirm that in all aspects (except Q5.3\_7), the academic effect of concussion is much more severe than that of musculoskeletal injury. Q5.3\_17 has the largest effect size (-1.04). The effect of concussion on that academic aspect is the maximum. 
+
+<<echo=FALSE>>=
+########################################################################
+## Functions
+########################################################################
+loadProject2Data <- function( folderPath ){
+  fileNameR <- 'Project2Data.RData'
+  filePath <- paste0( folderPath, fileNameR )
+  load( filePath )
+  return( Data )
+}
+
+DataProject2 <- loadProject2Data( folderPath = DataPath )
+DataProject2$AcadEffects <- 0
+  
+for( i in 1:22 ){
+  columnName <- paste0( 'Q5.3_', i )
+  DataProject2[, columnName][DataProject2[, columnName] == -7 ] <- 0
+  if( i != 7 ){
+    DataProject2$AcadEffects <- DataProject2$AcadEffects + DataProject2[, columnName]
+  }
+}
+VarsForModel <- c( 'AcadEffects', 'Age', 'Gender', 'Race', 'MentalIllness', 'InjuryType', 'AcadStatus' )
+DataForModel <- subset( DataProject2[, VarsForModel ], AcadEffects > 0 )
+
+DataForModel <- DataForModel[ !is.na( as.vector( DataForModel$Gender ) ), ]
+# DataForModel <- DataForModel[ !is.na( as.vector( DataForModel$Race ) ), ]
+# DataForModel <- DataForModel[ !is.na( as.vector( DataForModel$MentalIllness ) ), ]
+DataForModel <- DataForModel[ !is.na( as.vector( DataForModel$InjuryType ) ), ]
+DataForModel <- DataForModel[ !is.na( as.vector( DataForModel$AcadStatus ) ), ]
+
+Model3 <- lm( AcadEffects ~ Gender + AcadStatus + InjuryType, data = DataForModel )
+
+Model3_Standardized <- lm.beta( object = Model3 )
+
+Coeff <- as.data.frame( ( summary( Model3_Standardized )$coefficients )[, c( 1, 3, 2, 5 ) ] )
+colnames( Coeff ) <- c( 'B', 'SE_B', 'beta', 'pValue' )
+Coeff <- within( data = Coeff, expr = {
+  B = round( B, 2 )
+  SE_B = round( SE_B, 2 )
+  beta = round( beta, 2 )
+  pValue = round( pValue, 4 )
+})
+rownames( Coeff ) <- c(
+  'Intercept',
+  'Gender: Female',
+  'Academic Status: completed 1-2 yrs',
+  'Academic Status: completed 2-3 yrs',
+  'Academic Status: completed 3-4 yrs',
+  'Academic Status: completed 4 or more yrs',
+  'Injury Type: Musculoskeletal'
+)
+@
+
+\noindent
+{\bf{ Regression Model Fit}}\\
+In the final dataset for the model, there were 60 students who reported concussion and 125 students who reported musculoskeletal injury. The lower numbers were due to removing of non-reponses in all the covariates included in the model. For example, there were 58 students who did not answer any of the questions related to academic effects. There was 1 student who did not respond to the question on gender. After performing backward elimination, the final model had gender, academic status as the controlling demographic factors along with the predictor variable injury type. 
+
+<<echo=FALSE, results=tex>>=
+print( xtable( Coeff, align = "lrrrr", caption = "Regression results of academic effects of inury type", 
+               label = "tab:Tab2Reg", digits = c( 0, 2, 2, 2, 4 ) ), table.placement = "H" )
+
+@
+
+Multiple regression analysis was used to test if the injury type significantly predicted participants' academic effects. The results of the regression indicated that injury type, along with two demographic  covariates explained 16.09\% of the variance ($R^2=0.16, F(6,178) = 5.687, p < 0.01$). Table \ref{tab:Tab2Reg} shows the regression results, with both unstandardized and standardized betas, along with standard errors of beta and the p-values. Injury type is statistically significant ($\beta = 12.70, p < 0.01$). Students with concussion had, on an average 12.70 higher (hence more severe) academic effect compared to students with musculoskeletal injury. Gender was also a significant predictor. Male students, on an average had worse academic effect, ($\beta = 4.84, p < 0.1$). Students who completed 1-2 years of college had worse academic effect ($\beta = 8.83, p < 0.05$) compared to students in their first year of college. Tukey's post-hoc test was conducted on the academic status variable to detect any difference between any other subgroups. The post-hoc test revealed that students who completed 1-2 yrs had worse academic effects than students who completed 3-4 yrs ($\beta = 14.13, p < 0.05$). There was no statistically significant difference between any other groups.  
+
+
+% Below are bar plots of the responses to the questions.
+% \begin{figure}[H]
+% \includegraphics[width=0.5\linewidth]{Q5_3_1_barPlot.pdf}
+% \includegraphics[width=0.5\linewidth]{Q5_3_2_barPlot.pdf} \\
+% \includegraphics[width=0.5\linewidth]{Q5_3_3_barPlot.pdf} 
+% \includegraphics[width=0.5\linewidth]{Q5_3_4_barPlot.pdf} \\
+% \includegraphics[width=0.5\linewidth]{Q5_3_5_barPlot.pdf}
+% \includegraphics[width=0.5\linewidth]{Q5_3_6_barPlot.pdf}
+% \end{figure}
+% 
+% \begin{figure}[H]
+% \includegraphics[width=0.5\linewidth]{Q5_3_7_barPlot.pdf} 
+% \includegraphics[width=0.5\linewidth]{Q5_3_8_barPlot.pdf} \\
+% \includegraphics[width=0.5\linewidth]{Q5_3_9_barPlot.pdf}
+% \includegraphics[width=0.5\linewidth]{Q5_3_10_barPlot.pdf} \\
+% \includegraphics[width=0.5\linewidth]{Q5_3_11_barPlot.pdf}
+% \includegraphics[width=0.5\linewidth]{Q5_3_12_barPlot.pdf} \\
+% \end{figure}
+% 
+% \begin{figure}[H]
+% \includegraphics[width=0.5\linewidth]{Q5_3_13_barPlot.pdf}
+% \includegraphics[width=0.5\linewidth]{Q5_3_14_barPlot.pdf} \\
+% \includegraphics[width=0.5\linewidth]{Q5_3_15_barPlot.pdf}
+% \includegraphics[width=0.5\linewidth]{Q5_3_16_barPlot.pdf} \\
+% \includegraphics[width=0.5\linewidth]{Q5_3_17_barPlot.pdf}
+% \includegraphics[width=0.5\linewidth]{Q5_3_18_barPlot.pdf} \\
+% \end{figure}
+% 
+% \begin{figure}[H]
+% \includegraphics[width=0.5\linewidth]{Q5_3_19_barPlot.pdf}
+% \includegraphics[width=0.5\linewidth]{Q5_3_20_barPlot.pdf} \\
+% \includegraphics[width=0.5\linewidth]{Q5_3_21_barPlot.pdf}
+% \includegraphics[width=0.5\linewidth]{Q5_3_22_barPlot.pdf}
+% \end{figure}
+
+All computations were done using the statistical software R, version 3.3.1.
+
+\subsubsection*{Limitations}
+The summary and statistical findings, although interesting, have some limitations. The sample size was 76, and out of them 8 students did not respond to the question on self-reporting, further reducing the sample size to 68 students. Further analysis is necessary to assert if these non-respondents could be asserted as "missing-at-random". More respondents with information like the reason for injury, their activities, etc, would improve the predictive power of this model. A more balanced sample, in terms of the predictors would improve the robustness of the results. For example, if more males responded to the survey it would improved the gender balance. 
+
+
+
+\end{document}

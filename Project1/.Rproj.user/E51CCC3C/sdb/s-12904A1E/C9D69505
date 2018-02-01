@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "rm( list = ls( all.names = TRUE ) )\nrm( list = objects( all.names = TRUE ) )\n\n########################################################################\n## Load header files and source functions\n########################################################################\nlibrary( plyr )\nlibrary( ggplot2 )\nlibrary( RFunctionsSN )\nlibrary( xtable )\n########################################################################\n## Command line arguments for some static variables\n########################################################################\n#ProjectPath <- '~/Stat/Stat_Consulting/TraciSnedden/Project2/'\nProjectPath <- '~/Documents/snandi/Stat/Stat_Consulting/TraciSnedden/Project2/'\n\nDataPath <- paste0( ProjectPath, 'Data/' )\n\nsource( '../Project1/Codebook.R' )\nsource( paste0( ProjectPath, 'Project2_Static.R' ) )\n\n\n########################################################################\n## Functions\n########################################################################\nloadProject2Data <- function( folderPath ){\n  fileNameR <- 'Project2Data.RData'\n  filePath <- paste0( folderPath, fileNameR )\n  load( filePath )\n  return( Data )\n}\n\nDataProject2 <- loadProject2Data( folderPath = DataPath )\nDataProject2$AcadEffects <- 0\n  \nfor( i in 1:22 ){\n  columnName <- paste0( 'Q5.3_', i )\n  DataProject2[, columnName][DataProject2[, columnName] == -7 ] <- 0\n  if( i != 7 ){\n    DataProject2$AcadEffects <- DataProject2$AcadEffects + DataProject2[, columnName]\n  }\n}\nVarsForModel <- c( 'AcadEffects', 'Age', 'Gender', 'Race', 'MentalIllness', 'InjuryType', 'AcadStatus' )\n\nDataForModel <- subset( DataProject2[, VarsForModel ], AcadEffects > 0 )\n\nDataForModel <- DataForModel[ !is.na( as.vector( DataForModel$Gender ) ), ]\n#DataForModel <- DataForModel[ !is.na( as.vector( DataForModel$Race ) ), ]\n#DataForModel <- DataForModel[ !is.na( as.vector( DataForModel$MentalIllness ) ), ]\nDataForModel <- DataForModel[ !is.na( as.vector( DataForModel$InjuryType ) ), ]\nDataForModel <- DataForModel[ !is.na( as.vector( DataForModel$AcadStatus ) ), ]\n\n\n# DataForModel <- within( data = DataForModel,{\n#   Gender        <- as.factor( is.na( as.vector( Gender ) ) )\n#   Race          <- factor( as.vector( Race ) )\n#   MentalIllness <- factor( as.vector( MentalIllness ) )\n#   InjuryType    <- factor( as.vector( InjuryType ) )\n#   AcadStatus    <- factor( as.vector( AcadStatus ) )\n# })\nstr( DataForModel )\n\nqplot() + geom_histogram( aes( x = AcadEffects ), data = DataForModel )\n\nModel1 <- lm( log( AcadEffects ) ~ Age + Gender + Race + MentalIllness + InjuryType + AcadStatus +\n                InjuryType*Gender + InjuryType*Race + InjuryType*MentalIllness + InjuryType*AcadStatus, \n              data = DataForModel  )\nsummary( Model1 )\nanova( Model1 )\n\nModel2 <- step( Model1, direction = 'backward' )\n\nqplot() + geom_boxplot( aes( x = Q7.1_2_coded, y = AcadEffects ), data = DataProject2 )\n\nModel2 <- lm( log( AcadEffects ) ~ Gender + AcadStatus + InjuryType, data = DataForModel )\nsummary( Model2 )\nanova( Model2 )\n\nModel3 <- lm( AcadEffects ~ Gender + AcadStatus + InjuryType, data = DataForModel )\nsummary( Model3 )\n\nCoeff <- as.data.frame( ( summary( Model3 )$coefficients )[, c( 1, 4 ) ] )\ncolnames( Coeff ) <- c( 'Coefficient', 'pValue' )\nCoeff <- within( data = Coeff, expr = {\n  Coefficient = round( Coefficient, 2 )\n  pValue = round( pValue, 4 )\n})\n\nModel3Anova <- aov( AcadEffects ~ Gender + AcadStatus + InjuryType, data = DataForModel )\nTukeyHSD( x = Model3Anova, which = 'AcadStatus' )\n",
+    "created" : 1490500155475.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3833601546",
+    "id" : "C9D69505",
+    "lastKnownWriteTime" : 1490509572,
+    "last_content_update" : 1490509572403,
+    "path" : "/Users/Patron/Documents/snandi/Stat/Stat_Consulting/TraciSnedden/Project2/Project2_Model.R",
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

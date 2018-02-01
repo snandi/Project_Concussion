@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "########################################################################\n## This script has all the static variables for Project 2\n########################################################################\n\nProject2_VarNames <- c( 'Q1.1_coded', 'Q1.4_coded', 'Q1.5_coded', 'Q1.6_coded', 'Q1.9_coded',\n                        'Q2.1_coded', 'Q1.8_coded', 'Q2.7_TotalDays',\n                        paste0( 'Q7.1_', 1:8 ), paste0( 'Q7.1_', 1:8, '_coded' ),\n                        paste0( 'Q5.3_', 1:22 ), paste0( 'Q5.3_', 1:22, '_coded' ) )\n\nQ5.3Text <- c( \n  'I forget what has been said in class', \n  'I get overwhelmed when studying',\t   \n  'I get overwhelmed in class',\t   \n  'I get nervous before tests',\t   \n  'I have trouble managing my time',\t   \n  'I have difficulty taking notes while in a lecture class',\t   \n  'I am late to class',\t   \n  'I have trouble prioritizing assignments and meeting deadlines',\t   \n  'Others do not understand my problems',\t   \n  'I procastinate on things I need to do',\t   \n  'I have to review materials more than I used to',\t   \n  'I dont always understand instructions for assignments',\t   \n  'I need extra time to complete assignments',\t   \n  'I have difficulty putting my thoughts into words',\t   \n  'I have trouble reading books or magazines',\t   \n  'I have trouble paying attention in class',\t   \n  'I have trouble paying attention while studying',\t   \n  'I have trouble doing work on a computer or other mobile device',\t   \n  'I cant study for as long as I used to prior to my injury',\t   \n  'I get headaches when I read or write',\t   \n  'I need extra time to complete assignments',\t   \n  'I have fewer friends than before my injury'\n)\n\nnames( Q5.3Text ) <- paste0( 'Q5.3_', 1:22 )\n\nQ5.3Levels <- c( \"Strongly Disagree\", \"Disagree\", \"Neither Agree Nor Disagree\", \"Agree\", \n                 \"Strongly Agree\" )\n",
+    "created" : 1490510387115.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1682079407",
+    "id" : "866D9E63",
+    "lastKnownWriteTime" : 1490510423,
+    "last_content_update" : 1490510423078,
+    "path" : "~/Documents/snandi/Stat/Stat_Consulting/TraciSnedden/Project2/Project2_Static.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
